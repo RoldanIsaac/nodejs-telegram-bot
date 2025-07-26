@@ -21,7 +21,6 @@ pool.query("SELECT NOW()", (err, res) => {
   } else {
     console.log("✅ Conectado:", res.rows[0]);
   }
-  pool.end();
 });
 
 // Función para inicializar la base de datos
@@ -37,6 +36,8 @@ async function initializeDatabase() {
         createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    await pool.query("COMMIT");
     console.log('Tabla "Note" verificada/creada correctamente');
   } catch (error) {
     console.error("Error al inicializar la base de datos:", error);
@@ -87,37 +88,40 @@ export async function getAll(chatId = null) {
   console.log("⏳ Intentando conectar a PostgreSQL...");
   const client = await pool.connect();
   console.log("✅ Conectado a PostgreSQL");
+
   const last24H = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   try {
-    let query;
-    let params;
+    let query = `
+      SELECT * FROM note
+      WHERE created_at >= $1
+    `;
+    const params = [last24H];
 
     if (chatId) {
-      query =
-        "SELECT * FROM Note WHERE created_at >= $1 AND chat_id = $2 ORDER BY created_at DESC";
-      params = [last24H, chatId];
-    } else {
-      query =
-        "SELECT * FROM Note WHERE created_at >= $1 ORDER BY created_at DESC";
-      params = [last24H];
+      query += ` AND chat_id = $2`;
+      params.push(chatId);
     }
 
+    query += ` ORDER BY created_at DESC`;
+
     const result = await client.query(query, params);
+
+    console.log(`📥 Notas encontradas: ${result.rowCount}`);
 
     return {
       status: 200,
       notes: result.rows,
       qty: result.rowCount,
-      message: "Notes in the last 24H",
+      message: "Notas encontradas en las últimas 24 horas",
     };
   } catch (err) {
-    console.error("Error retrieving notes:", err);
+    console.error("❌ Error al obtener notas:", err);
     return {
       status: 500,
       notes: [],
       qty: 0,
-      message: "Error retrieving notes",
+      message: "Error al obtener notas",
       error: err.message,
     };
   } finally {
