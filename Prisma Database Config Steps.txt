@@ -1,0 +1,28 @@
+🛠️ PASO 1: Inicializa tu proyecto
+npm init -y
+npm install node-telegram-bot-api
+
+🧩 PASO 2: Instala Prisma CLI y el cliente
+npm install prisma --save-dev
+npm install @prisma/client
+    prisma es la CLI para generar el cliente.
+    @prisma/client es lo que usarás en tu código para interactuar con la base de datos.
+
+📦 PASO 3: Inicializa Prisma
+npx prisma init
+
+🔌 PASO 4: Configura la conexión a PostgreSQL
+    Edita el archivo .env que se creó:
+    DATABASE_URL="postgresql://usuario:contraseña@localhost:5432/mi_basedatos"
+🧬 PASO 5: Define tu modelo en prisma/schema.prisma
+
+🧱 PASO 6: Genera el cliente Prisma
+npx prisma generate
+
+Opcional: si aún no tienes la base de datos creada, también puedes hacer una migración:
+npx prisma migrate dev --name init
+npx prisma migrate dev --name add_notes, etc. This is the name of the migration.
+
+Esto:
+Crea las tablas en tu DB.
+Genera el cliente actualizado.
